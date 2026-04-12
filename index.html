@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playtatic Pro Elite v32</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --azul: #0B1E47; --dourado: #D4AF37; --fundo: #f0f2f5; --branco: #ffffff;
+            --sucesso: #2ecc71; --perigo: #e74c3c; --alerta: #f1c40f; --info: #3498db; --app: #6c5ce7;
+        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--fundo); color: #333; padding-bottom: 60px; }
+        header { background: var(--azul); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--dourado); }
+        header img { width: 60px; height: 60px; object-fit: contain; border-radius: 50%; background: #fff; margin-bottom: 5px; }
+        nav { background: white; padding: 10px; display: flex; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-wrap: wrap; position: sticky; top: 0; z-index: 1000; }
+        nav button { background: none; border: 1px solid #ddd; color: var(--azul); padding: 8px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 10px; }
+        nav button.active { background: var(--azul); color: white; border-color: var(--azul); }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--branco); padding: 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 5px solid var(--dourado); }
+        .stat-card { text-align: center; padding: 15px; border-radius: 12px; color: white; margin-bottom: 10px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn-principal { background: var(--azul); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .btn-acao { border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; color: white; margin: 2px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; background: white; border-radius: 10px; overflow: hidden; }
+        th { background: #f1f3f5; color: var(--azul); padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        #modal-doc { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; overflow-y: auto; }
+        .doc-box { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; border: 5px solid var(--azul); }
+    </style>
+</head>
+<body>
+
+<header>
+    <img id="header-logo" src="https://i.postimg.cc/B6xF4JFd/IMG-8777.png" alt="Logo">
+    <h1 id="header-nome">PLAYTATIC PRO ELITE</h1>
+    <small id="header-pix">PIX: 03244828418</small>
+</header>
+
+<nav id="menu">
+    <button onclick="showTab('dash')" class="active">🏠 Dash</button>
+    <button onclick="showTab('pedidos')">🛒 Pedidos</button>
+    <button onclick="showTab('apps')">📱 Apps</button>
+    <button onclick="showTab('financeiro')">💰 Fin.</button>
+    <button onclick="showTab('estoque')">🛠️ Est.</button>
+    <button onclick="showTab('clientes')">👥 Cli.</button>
+    <button onclick="showTab('vitrine')">🖼️ Vitr.</button>
+    <button onclick="showTab('config')">⚙️</button>
+</nav>
+
+<div class="container">
+    
+    <div id="dash" class="tab-content active">
+        <div class="grid">
+            <div class="stat-card" style="background: var(--sucesso);"><small>Caixa (Mão)</small><div id="dash-caixa" style="font-size: 20px; font-weight: bold;">R$ 0,00</div></div>
+            <div class="stat-card" style="background: var(--azul);"><small>Lucro Real</small><div id="dash-lucro" style="font-size: 20px; font-weight: bold;">R$ 0,00</div></div>
+            <div class="stat-card" style="background: var(--perigo);"><small>A Receber</small><div id="dash-receber" style="font-size: 20px; font-weight: bold;">R$ 0,00</div></div>
+        </div>
+        <div class="card">
+            <h2>📅 Bloco de Notas (Agenda por Dia)</h2>
+            <input type="date" id="agenda-data" onchange="loadAgenda()">
+            <textarea id="agenda-texto" rows="4" placeholder="Notas do dia..."></textarea>
+            <button class="btn-principal" onclick="saveAgenda()">✅ Salvar Diário</button>
+        </div>
+    </div>
+
+    <div id="pedidos" class="tab-content">
+        <div class="card">
+            <h2>🛒 Novo Pedido + 🚚 Frete Cubagem</h2>
+            <div class="grid">
+                <select id="p-cli"><option value="">Cliente...</option></select>
+                <select id="p-prod" onchange="calcPed()"><option value="">Produto...</option></select>
+                <input type="number" id="p-qtd" value="1" oninput="calcPed()">
+                <select id="p-parcelas">
+                    <option value="1">À Vista/PIX</option><option value="2">2x</option><option value="3">3x</option>
+                    <option value="6">6x</option><option value="12">12x</option>
+                </select>
+            </div>
+            <div style="background:#e3f2fd; padding:10px; border-radius:10px; margin:10px 0;">
+                <small>📐 Calculadora Frete (Maceió/Nacional):</small>
+                <select id="p-frete-tipo" onchange="calcPed()">
+                    <option value="0">Retirada (R$ 0)</option>
+                    <option value="15">Maceió: Baixa (R$ 15)</option>
+                    <option value="25">Maceió: Alta (R$ 25)</option>
+                    <option value="manual">Manual / Transportadora</option>
+                </select>
+                <input type="number" id="p-frete-manual" placeholder="R$ Valor Frete" oninput="calcPed()" style="display:none;">
+                <button class="btn-acao" style="background:var(--info); width:100%; margin-top:5px;" onclick="window.open('https://www.google.com.br/maps')">🛵 Consultar 99/Uber</button>
+            </div>
+            <div style="background:#fff9c4; padding:10px; text-align:center; font-weight:bold;">TOTAL: R$ <span id="p-total">0.00</span> | SINAL: R$ <span id="p-sinal">0.00</span></div>
+            <button class="btn-principal" onclick="addPedido()">Salvar Orçamento</button>
+        </div>
+        <table id="tab-ped"><thead><tr><th>Cliente</th><th>Produto</th><th>Status</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="apps" class="tab-content">
+        <div class="card">
+            <h2>📱 Licenças Playtatic App</h2>
+            <div class="grid">
+                <select id="a-cli"><option value="">Cliente...</option></select>
+                <input type="text" id="a-login" placeholder="Login">
+                <input type="text" id="a-senha" placeholder="Senha">
+                <select id="a-plano">
+                    <option value="0">Teste (15 dias)</option>
+                    <option value="29.90">Mensal</option>
+                    <option value="280.00">Anual</option>
+                </select>
+            </div>
+            <button class="btn-principal" style="background:var(--app)" onclick="addApp()">Ativar Licença</button>
+        </div>
+        <table id="tab-app"><thead><tr><th>Cliente</th><th>Vencimento</th><th>Ação</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="financeiro" class="tab-content">
+        <div class="card">
+            <h2>💸 Saídas de Caixa (Gastos)</h2>
+            <div class="grid"><input type="text" id="f-desc" placeholder="Desc"><input type="number" id="f-valor" placeholder="R$"><button class="btn-principal" onclick="addGasto()">Salvar Gasto</button></div>
+        </div>
+        <table id="tab-gastos"><thead><tr><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="estoque" class="tab-content">
+        <div class="card">
+            <h2>🛠️ Insumos & Materiais</h2>
+            <div class="grid"><input type="text" id="e-item" placeholder="Material"><input type="number" id="e-qtd" placeholder="Qtd"><button class="btn-principal" onclick="addEstoque()">Salvar</button></div>
+        </div>
+        <table id="tab-estoque"><thead><tr><th>Item</th><th>Qtd</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="clientes" class="tab-content">
+        <div class="card">
+            <h2>👥 Cadastro de Clientes</h2>
+            <div class="grid">
+                <input type="text" id="c-nome" placeholder="Nome">
+                <input type="text" id="c-tel" placeholder="Zap">
+                <input type="text" id="c-doc" placeholder="CPF/CNPJ">
+                <textarea id="c-end" placeholder="Endereço"></textarea>
+            </div>
+            <button class="btn-principal" onclick="addCliente()">Salvar</button>
+        </div>
+        <table id="tab-cli"><thead><tr><th>Nome</th><th>Zap</th><th>Documento</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="vitrine" class="tab-content">
+        <div class="card">
+            <h2>🖼️ Vitrine e Catálogo</h2>
+            <div class="grid"><input type="text" id="v-nome" placeholder="Produto"><input type="number" id="v-preco" placeholder="Preço"><input type="text" id="v-img" placeholder="URL Foto"></div>
+            <button class="btn-principal" onclick="addVitrine()">Cadastrar</button>
+            <button class="btn-principal" style="background:var(--sucesso); margin-top:5px;" onclick="zapCatalogo()">📲 Enviar Catálogo Zap</button>
+        </div>
+        <div class="grid" id="grid-vit"></div>
+    </div>
+
+    <div id="config" class="tab-content">
+        <div class="card">
+            <h2>⚙️ Configurações da Empresa</h2>
+            <div class="grid">
+                <input type="text" id="cfg-nome" placeholder="Nome da Empresa">
+                <input type="text" id="cfg-pix" placeholder="Sua Chave PIX">
+                <input type="text" id="cfg-tel" placeholder="Seu Zap de Atendimento">
+                <input type="text" id="cfg-logo" placeholder="URL da sua Logo">
+            </div>
+            <button class="btn-principal" onclick="saveConfig()" style="background:var(--info);">Salvar Configurações</button>
+            <hr>
+            <button class="btn-principal" style="background:var(--perigo); margin-top:20px;" onclick="if(confirm('Limpar sistema?')) { localStorage.clear(); location.reload(); }">Resetar Tudo</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="modal-doc">
+    <div class="doc-box">
+        <button onclick="document.getElementById('modal-doc').style.display='none'" style="float:right; border:none; background:red; color:white; border-radius:50%; width:25px; height:25px;">X</button>
+        <div id="doc-corpo"></div>
+        <div style="display:flex; justify-content:center; margin-top:10px;"><div id="qrcode"></div></div>
+        <button class="btn-principal" onclick="window.print()">Imprimir / PDF</button>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('playtatic_v32_final')) || { 
+        clientes: [], vitrine: [], pedidos: [], tasks: {}, gastos: [], estoque: [], apps: [],
+        cfg: { nome: 'PLAYTATIC PRO ELITE', pix: '03244828418', tel: '', logo: 'https://i.postimg.cc/B6xF4JFd/IMG-8777.png' }
+    };
+
+    function save() { localStorage.setItem('playtatic_v32_final', JSON.stringify(db)); render(); }
+    function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('#menu button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
+    
+    function saveConfig() {
+        db.cfg.nome = document.getElementById('cfg-nome').value;
+        db.cfg.pix = document.getElementById('cfg-pix').value;
+        db.cfg.tel = document.getElementById('cfg-tel').value;
+        db.cfg.logo = document.getElementById('cfg-logo').value;
+        save(); alert("Configurações Salvas!");
+    }
+
+    function calcPed() {
+        const p = db.vitrine.find(x => x.nome === document.getElementById('p-prod').value);
+        let fVal = document.getElementById('p-frete-tipo').value === 'manual' ? parseFloat(document.getElementById('p-frete-manual').value || 0) : parseFloat(document.getElementById('p-frete-tipo').value);
+        document.getElementById('p-frete-manual').style.display = document.getElementById('p-frete-tipo').value === 'manual' ? 'block' : 'none';
+        let total = (((p?p.preco:0) * parseInt(document.getElementById('p-qtd').value || 1)) + fVal);
+        document.getElementById('p-total').innerText = total.toFixed(2);
+        document.getElementById('p-sinal').innerText = (total / 2).toFixed(2);
+    }
+
+    function addPedido() { db.pedidos.push({ id: Date.now(), cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, valor: parseFloat(document.getElementById('p-total').innerText), status: 'ORCAMENTO' }); save(); }
+    function addCliente() { db.clientes.push({ nome: document.getElementById('c-nome').value, doc: document.getElementById('c-doc').value, tel: document.getElementById('c-tel').value, end: document.getElementById('c-end').value }); save(); }
+    function addVitrine() { db.vitrine.push({ nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value }); save(); }
+    function addGasto() { db.gastos.push({ desc: document.getElementById('f-desc').value, valor: parseFloat(document.getElementById('f-valor').value || 0) }); save(); }
+    function addEstoque() { db.estoque.push({ i: document.getElementById('e-item').value, q: parseInt(document.getElementById('e-qtd').value) }); save(); }
+    function addApp() { db.apps.push({ cli: document.getElementById('a-cli').value, login: document.getElementById('a-login').value, venc: '30 dias' }); save(); }
+    function loadAgenda() { document.getElementById('agenda-texto').value = db.tasks[document.getElementById('agenda-data').value] || ""; }
+    function saveAgenda() { db.tasks[document.getElementById('agenda-data').value] = document.getElementById('agenda-texto').value; save(); }
+
+    function zapCatalogo() {
+        let txt = `*⚽ Catálogo ${db.cfg.nome}*\n\n`;
+        db.vitrine.forEach(v => txt += `🖼️ *${v.nome}* - R$ ${v.preco}\n`);
+        window.open(`https://wa.me/${db.cfg.tel}?text=${encodeURIComponent(txt)}`);
+    }
+
+    function abrirDoc(idx) {
+        const p = db.pedidos[idx]; const c = db.clientes.find(x => x.nome === p.cli);
+        document.getElementById('doc-corpo').innerHTML = `
+            <div style="text-align:center"><img src="${db.cfg.logo}" width="60"><h3>${db.cfg.nome}</h3></div>
+            <p><b>CLIENTE:</b> ${c.nome}<br><b>DOC:</b> ${c.doc}<br><b>PRODUTO:</b> ${p.prod}</p>
+            <div style="background:#f1f1f1; padding:10px; text-align:center;"><b>PIX: ${db.cfg.pix}</b><br>TOTAL: R$ ${p.valor.toFixed(2)}</div>
+        `;
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: `Propriedade de: ${c.nome}`, width: 100, height: 100 });
+        document.getElementById('modal-doc').style.display = 'flex';
+    }
+
+    function render() {
+        document.getElementById('header-nome').innerText = db.cfg.nome;
+        document.getElementById('header-pix').innerText = "PIX: " + db.cfg.pix;
+        document.getElementById('header-logo').src = db.cfg.logo;
+        document.getElementById('cfg-nome').value = db.cfg.nome;
+        document.getElementById('cfg-pix').value = db.cfg.pix;
+        document.getElementById('cfg-tel').value = db.cfg.tel;
+        document.getElementById('cfg-logo').value = db.cfg.logo;
+
+        const ent = db.pedidos.filter(p => p.status === 'ENTREGUE');
+        const orc = db.pedidos.filter(p => p.status !== 'ENTREGUE');
+        let caixa = ent.reduce((a,b)=> a+b.valor, 0) + orc.reduce((a,b)=> a+(b.valor/2), 0);
+        let gastos = db.gastos.reduce((a,b)=> a+b.valor, 0);
+
+        document.getElementById('dash-caixa').innerText = `R$ ${caixa.toFixed(2)}`;
+        document.getElementById('dash-lucro').innerText = `R$ ${(caixa - gastos).toFixed(2)}`;
+        document.getElementById('dash-receber').innerText = `R$ ${orc.reduce((a,b)=>a+(b.valor/2),0).toFixed(2)}`;
+
+        document.getElementById('a-cli').innerHTML = document.getElementById('p-cli').innerHTML = '<option value="">Cliente...</option>' + db.clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+        document.getElementById('p-prod').innerHTML = '<option value="">Produto...</option>' + db.vitrine.map(v => `<option value="${v.nome}">${v.nome}</option>`).join('');
+
+        document.querySelector('#tab-ped tbody').innerHTML = db.pedidos.map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button onclick="db.pedidos[${i}].status='ENTREGUE';save()">✅</button><button onclick="abrirDoc(${i})">🧾</button></td></tr>`).reverse().join('');
+        document.querySelector('#tab-cli tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${c.doc}</td></tr>`).join('');
+        document.getElementById('grid-vit').innerHTML = db.vitrine.map(v => `<div class="card" style="text-align:center;"><img src="${v.img}" style="width:100%;height:60px;object-fit:cover;border-radius:5px;"><b>${v.nome}</b><br>R$ ${v.preco}</div>`).join('');
+        document.querySelector('#tab-estoque tbody').innerHTML = db.estoque.map(e => `<tr><td>${e.i}</td><td>${e.q}</td><td>OK</td></tr>`).join('');
+    }
+    document.getElementById('agenda-data').valueAsDate = new Date();
+    render();
+</script>
+</body>
+</html>
