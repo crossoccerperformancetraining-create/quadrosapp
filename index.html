@@ -135,7 +135,7 @@
 </div>
 
 <script>
-    // 🛑 CONEXÃO FIREBASE ATIVA COM SUAS CHAVES
+    // 🛑 CONEXÃO FIREBASE ATIVA
     const firebaseConfig = {
         apiKey: "AIzaSyA4nugqTwZBEbvwJls6JrVSdki9ee-lXh4",
         authDomain: "playtaticquadros.firebaseapp.com",
@@ -149,77 +149,50 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    const SENHA_MESTRA = "1234";
     function checkLogin() {
-        if(document.getElementById('pass-input').value === "1234") document.getElementById('login-screen').style.display = 'none';
+        if(document.getElementById('pass-input').value === SENHA_MESTRA) document.getElementById('login-screen').style.display = 'none';
     }
 
     let db = { clientes: [], vitrine: [], pedidos: [], tasks: {}, gastos: [], estoque: [], cfg: {nome:'PLAYTATIC', pix:'03244828418', logo:'https://i.postimg.cc/B6xF4JFd/IMG-8777.png'} };
 
-    // Sincronizar da Nuvem para o App
+    // Escutar mudanças na nuvem
     database.ref('/').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) { db = data; render(); }
     });
 
-    // Enviar para a Nuvem
     function sync() { database.ref('/').set(db); }
 
     function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     
     function calcPed() {
-        const p = (db.vitrine || []).find(x => x.nome === document.getElementById('p-prod').value);
+        const p = db.vitrine.find(x => x.nome === document.getElementById('p-prod').value);
         let f = document.getElementById('p-frete').value === 'manual' ? parseFloat(document.getElementById('p-f-manual').value || 0) : parseFloat(document.getElementById('p-frete').value);
         document.getElementById('manual-f').style.display = document.getElementById('p-frete').value === 'manual' ? 'block' : 'none';
         document.getElementById('p-total').innerText = (((p?p.preco:0) * parseInt(document.getElementById('p-qtd').value || 1)) + f).toFixed(2);
     }
 
-    function addPedido() { 
-        if(!db.pedidos) db.pedidos = [];
-        db.pedidos.push({ id: Date.now(), cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, valor: parseFloat(document.getElementById('p-total').innerText), status: 'ORCAMENTO' }); 
-        sync(); 
-    }
-    
-    function addCliente() { 
-        if(!db.clientes) db.clientes = [];
-        db.clientes.push({ nome: document.getElementById('c-nome').value, tel: document.getElementById('c-tel').value, doc: document.getElementById('c-doc').value, end: document.getElementById('c-end').value }); 
-        sync(); 
-    }
-    
-    function addVitrine() { 
-        if(!db.vitrine) db.vitrine = [];
-        db.vitrine.push({ nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value }); 
-        sync(); 
-    }
-
-    function saveConfig() { 
-        db.cfg.nome = document.getElementById('cfg-nome').value; 
-        db.cfg.pix = document.getElementById('cfg-pix').value; 
-        db.cfg.logo = document.getElementById('cfg-logo').value; 
-        sync(); 
-    }
-
-    function saveAgenda() { 
-        if(!db.tasks) db.tasks = {};
-        db.tasks[document.getElementById('agenda-data').value] = document.getElementById('agenda-texto').value; 
-        sync(); 
-    }
-
-    function loadAgenda() { document.getElementById('agenda-texto').value = (db.tasks || {})[document.getElementById('agenda-data').value] || ""; }
+    function addPedido() { db.pedidos.push({ id: Date.now(), cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, valor: parseFloat(document.getElementById('p-total').innerText), status: 'ORCAMENTO' }); sync(); }
+    function addCliente() { db.clientes.push({ nome: document.getElementById('c-nome').value, tel: document.getElementById('c-tel').value, doc: document.getElementById('c-doc').value, end: document.getElementById('c-end').value }); sync(); }
+    function addVitrine() { db.vitrine.push({ nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value }); sync(); }
+    function saveConfig() { db.cfg.nome = document.getElementById('cfg-nome').value; db.cfg.pix = document.getElementById('cfg-pix').value; db.cfg.logo = document.getElementById('cfg-logo').value; sync(); }
+    function saveAgenda() { db.tasks[document.getElementById('agenda-data').value] = document.getElementById('agenda-texto').value; sync(); }
+    function loadAgenda() { document.getElementById('agenda-texto').value = db.tasks[document.getElementById('agenda-data').value] || ""; }
 
     function render() {
         document.getElementById('header-nome').innerText = db.cfg.nome;
         document.getElementById('header-pix').innerText = "PIX: " + db.cfg.pix;
         document.getElementById('header-logo').src = db.cfg.logo;
 
-        const ent = (db.pedidos || []).filter(p => p.status === 'ENTREGUE');
-        const orc = (db.pedidos || []).filter(p => p.status !== 'ENTREGUE');
+        const ent = db.pedidos ? db.pedidos.filter(p => p.status === 'ENTREGUE') : [];
+        const orc = db.pedidos ? db.pedidos.filter(p => p.status !== 'ENTREGUE') : [];
         let caixa = ent.reduce((a,b)=> a+b.valor, 0) + orc.reduce((a,b)=> a+(b.valor/2), 0);
         document.getElementById('dash-caixa').innerText = "R$ " + caixa.toFixed(2);
 
         document.getElementById('p-cli').innerHTML = '<option value="">Cliente...</option>' + (db.clientes || []).map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         document.getElementById('p-prod').innerHTML = '<option value="">Produto...</option>' + (db.vitrine || []).map(v => `<option value="${v.nome}">${v.nome}</option>`).join('');
-        
-        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button onclick="db.pedidos.find(x=>x.id==${p.id}).status='ENTREGUE';sync()">✅</button></td></tr>`).reverse().join('');
+        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button onclick="db.pedidos[${i}].status='ENTREGUE';sync()">✅</button></td></tr>`).reverse().join('');
         document.querySelector('#tab-cli tbody').innerHTML = (db.clientes || []).map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td></tr>`).join('');
         document.getElementById('grid-vit').innerHTML = (db.vitrine || []).map(v => `<div class="card" style="text-align:center;"><img src="${v.img}" style="width:100%;height:60px;object-fit:cover;border-radius:5px;"><b>${v.nome}</b><br>R$ ${v.preco}</div>`).join('');
     }
