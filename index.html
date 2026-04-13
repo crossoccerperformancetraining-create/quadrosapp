@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playtatic Pro Elite v38 - Cloud Master</title>
+    <title>Playtatic Pro Elite v39 - Cloud Master</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -15,7 +15,7 @@
         }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--fundo); color: #333; padding-bottom: 60px; }
         
-        /* LOGIN */
+        /* TRAVA DE SEGURANÇA */
         #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--azul); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; }
 
@@ -38,13 +38,15 @@
         .btn-principal { background: var(--azul); color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-acao { border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; color: white; margin: 2px; }
 
-        /* Vitrine */
         .vitrine-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
         .vitrine-controls { display: flex; justify-content: space-around; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; background: white; border-radius: 10px; overflow: hidden; }
         th { background: #f1f3f5; color: var(--azul); padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #eee; }
+
+        #modal-doc { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; overflow-y: auto; }
+        .doc-box { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; border: 5px solid var(--azul); position: relative; }
     </style>
 </head>
 <body>
@@ -53,7 +55,7 @@
     <div class="login-box">
         <img src="https://i.postimg.cc/B6xF4JFd/IMG-8777.png" width="60">
         <h2>Playtatic Cloud</h2>
-        <input type="password" id="pass-input" placeholder="Senha">
+        <input type="password" id="pass-input" placeholder="Senha de Acesso">
         <button class="btn-principal" onclick="checkLogin()">Entrar</button>
     </div>
 </div>
@@ -99,7 +101,7 @@
                 <select id="p-prod" onchange="calcPed()"><option value="">Produto...</option></select>
                 <select id="p-pag">
                     <option value="1">À Vista/PIX</option><option value="2">2x</option><option value="3">3x</option>
-                    <option value="6">6x</option><option value="12">12x</option>
+                    <option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="12">12x</option>
                 </select>
                 <input type="number" id="p-qtd" value="1" oninput="calcPed()">
             </div>
@@ -112,6 +114,7 @@
                     <option value="manual">Nacional / Transportadora</option>
                 </select>
                 <input type="number" id="p-f-manual" placeholder="R$ Valor Manual" oninput="calcPed()" style="display:none;">
+                <button class="btn-acao" style="background:var(--info); width:100%; margin-top:5px;" onclick="window.open('https://www.google.com.br/maps')">🛵 Consultar 99/Uber</button>
             </div>
             <div style="background:#fff9c4; padding:10px; text-align:center; font-weight:bold;">TOTAL: R$ <span id="p-total">0.00</span> | SINAL: R$ <span id="p-sinal">0.00</span></div>
             <button class="btn-principal" onclick="addPedido()">Salvar Orçamento</button>
@@ -138,7 +141,7 @@
 
     <div id="financeiro" class="tab-content">
         <div class="card">
-            <h2>💸 Saídas de Caixa (Gastos)</h2>
+            <h2>💰 Saídas de Caixa (Gastos)</h2>
             <div class="grid"><input type="text" id="f-desc" placeholder="Desc"><input type="number" id="f-valor" placeholder="R$"><button class="btn-principal" onclick="addGasto()">Salvar Gasto</button></div>
         </div>
         <table id="tab-gastos"><thead><tr><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody></tbody></table>
@@ -192,7 +195,15 @@
             <button class="btn-principal" onclick="saveConfig()">Salvar Configurações</button>
         </div>
     </div>
+</div>
 
+<div id="modal-doc">
+    <div class="doc-box">
+        <button onclick="document.getElementById('modal-doc').style.display='none'" style="float:right; border:none; background:red; color:white; border-radius:50%; width:25px; height:25px; cursor:pointer;">X</button>
+        <div id="doc-corpo"></div>
+        <div style="display:flex; justify-content:center; margin-top:10px;"><div id="qrcode"></div></div>
+        <button class="btn-principal" onclick="window.print()">Imprimir / PDF</button>
+    </div>
 </div>
 
 <script>
@@ -211,6 +222,7 @@
 
     function checkLogin() {
         if(document.getElementById('pass-input').value === "1234") document.getElementById('login-screen').style.display = 'none';
+        else alert("Senha Incorreta!");
     }
 
     let db = { clientes: [], vitrine: [], pedidos: [], tasks: {}, gastos: [], apps: [], estoque: [], cfg: {nome:'PLAYTATIC', pix:'03244828418', logo:'https://i.postimg.cc/B6xF4JFd/IMG-8777.png'} };
@@ -252,7 +264,7 @@
         const v = { id: id ? parseInt(id) : Date.now(), nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value };
         if(!db.vitrine) db.vitrine = [];
         if(id) { const idx = db.vitrine.findIndex(x => x.id == id); db.vitrine[idx] = v; }
-        else { db.vitrine.push(v); }
+        else db.vitrine.push(v);
         document.getElementById('v-id').value = ''; document.getElementById('v-nome').value = ''; document.getElementById('v-preco').value = ''; document.getElementById('v-img').value = '';
         document.getElementById('v-btn').innerText = 'Cadastrar Produto'; sync();
     }
@@ -265,6 +277,24 @@
     }
 
     function deleteVitrine(id) { if(confirm("Apagar produto?")) { db.vitrine = db.vitrine.filter(x => x.id != id); sync(); } }
+
+    function zapCatalogo() {
+        let txt = `*⚽ Catálogo ${db.cfg.nome}*\n\n`;
+        (db.vitrine || []).forEach(v => txt += `🖼️ *${v.nome}* - R$ ${v.preco}\n`);
+        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
+    }
+
+    function abrirDoc(idx) {
+        const p = db.pedidos[idx]; const c = db.clientes.find(x => x.nome === p.cli);
+        document.getElementById('doc-corpo').innerHTML = `
+            <div style="text-align:center"><img src="${db.cfg.logo}" width="60"><h3>${db.cfg.nome}</h3></div>
+            <p><b>CLIENTE:</b> ${p.cli}<br><b>PRODUTO:</b> ${p.prod}</p>
+            <div style="background:#f1f1f1; padding:10px; text-align:center;"><b>PIX: ${db.cfg.pix}</b><br>TOTAL: R$ ${p.valor.toFixed(2)}</div>
+        `;
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: `Propriedade de: ${p.cli} | Playtatic Elite`, width: 100, height: 100 });
+        document.getElementById('modal-doc').style.display = 'flex';
+    }
 
     function render() {
         document.getElementById('header-nome').innerText = db.cfg.nome;
@@ -282,7 +312,7 @@
         document.getElementById('p-cli').innerHTML = document.getElementById('a-cli').innerHTML = '<option value="">Cliente...</option>' + (db.clientes || []).map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         document.getElementById('p-prod').innerHTML = '<option value="">Produto...</option>' + (db.vitrine || []).map(v => `<option value="${v.nome}">${v.nome}</option>`).join('');
         
-        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button onclick="db.pedidos.find(x=>x.id==${p.id}).status='ENTREGUE';sync()">✅</button></td></tr>`).reverse().join('');
+        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button class="btn-acao" style="background:var(--sucesso)" onclick="db.pedidos.find(x=>x.id==${p.id}).status='ENTREGUE';sync()">✅</button><button class="btn-acao" style="background:var(--info)" onclick="abrirDoc(${i})">🧾</button></td></tr>`).reverse().join('');
         document.querySelector('#tab-cli tbody').innerHTML = (db.clientes || []).map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${c.doc || ''}</td></tr>`).join('');
         document.querySelector('#tab-gastos tbody').innerHTML = (db.gastos || []).map((g,i) => `<tr><td>${g.d}</td><td>R$ ${g.v}</td><td><button onclick="db.gastos.splice(${i},1);sync()">❌</button></td></tr>`).reverse().join('');
         document.querySelector('#tab-estoque tbody').innerHTML = (db.estoque || []).map((e,i) => `<tr><td>${e.i}</td><td>${e.q}</td><td><button onclick="db.estoque.splice(${i},1);sync()">❌</button></td></tr>`).join('');
