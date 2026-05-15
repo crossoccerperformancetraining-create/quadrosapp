@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playtatic Pro Elite v40 - Cloud</title>
+    <title>Playtatic Pro Elite v41 - Cloud</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -38,7 +38,7 @@
 <div id="login-screen">
     <div class="login-box">
         <img src="https://i.postimg.cc/B6xF4JFd/IMG-8777.png" width="60">
-        <h2>Acesso Adriano</h2>
+        <h2>Acesso Playtatic</h2>
         <input type="password" id="pass-input" placeholder="Senha">
         <button class="btn-principal" onclick="checkLogin()">Entrar</button>
     </div>
@@ -82,27 +82,25 @@
             <select id="p-cli"><option value="">Cliente...</option></select>
             <select id="p-prod" onchange="calcPed()"><option value="">Produto...</option></select>
             <div class="grid">
+                <input type="number" id="p-qtd" value="1" placeholder="Quantidade" oninput="calcPed()">
                 <select id="p-pag">
                     <option value="1">À Vista/PIX</option><option value="2">2x</option><option value="3">3x</option>
                     <option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="12">12x</option>
                 </select>
-                <input type="number" id="p-qtd" value="1" oninput="calcPed()">
             </div>
             <div style="background:#e3f2fd; padding:10px; border-radius:10px; margin:10px 0;">
-                <small>📐 Calculadora Frete (Maceió/Nacional):</small>
                 <select id="p-frete" onchange="calcPed()">
                     <option value="0">Retirada (R$ 0)</option>
                     <option value="15">Maceió: Baixa (R$ 15)</option>
                     <option value="25">Maceió: Alta (R$ 25)</option>
                     <option value="manual">Nacional / Transportadora</option>
                 </select>
-                <input type="number" id="p-f-manual" placeholder="R$ Valor Frete" oninput="calcPed()" style="display:none;">
-                <button class="btn-acao" style="background:var(--info); width:100%; margin-top:5px;" onclick="window.open('https://www.google.com.br/maps')">🛵 99/Uber</button>
+                <input type="number" id="p-f-manual" placeholder="R$ Valor Manual" oninput="calcPed()" style="display:none;">
             </div>
             <div style="background:#fff9c4; padding:10px; text-align:center; font-weight:bold;">TOTAL: R$ <span id="p-total">0.00</span> | SINAL: R$ <span id="p-sinal">0.00</span></div>
-            <button class="btn-principal" onclick="addPedido()">Salvar Orçamento</button>
+            <button class="btn-principal" onclick="addPedido()">Salvar Pedido</button>
         </div>
-        <table id="tab-ped"><thead><tr><th>Cliente</th><th>Produto</th><th>Status</th><th>Ação</th></tr></thead><tbody></tbody></table>
+        <table id="tab-ped"><thead><tr><th>Cliente</th><th>Produto (Qtd)</th><th>Status</th><th>Ação</th></tr></thead><tbody></tbody></table>
     </div>
 
     <div id="financeiro" class="tab-content">
@@ -113,39 +111,32 @@
         <table id="tab-gastos"><thead><tr><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody></tbody></table>
     </div>
 
+    <div id="clientes" class="tab-content">
+        <div class="card">
+            <h2>👥 Cadastro de Clientes</h2>
+            <div class="grid">
+                <input type="text" id="c-nome" placeholder="Nome">
+                <input type="text" id="c-doc" placeholder="CPF/CNPJ">
+                <input type="text" id="c-tel" placeholder="Zap">
+            </div>
+            <textarea id="c-end" placeholder="Endereço Completo"></textarea>
+            <button class="btn-principal" onclick="addCliente()">Salvar Cliente</button>
+        </div>
+        <table id="tab-cli"><thead><tr><th>Nome</th><th>Zap</th><th>Ação</th></tr></thead><tbody></tbody></table>
+    </div>
+
     <div id="vitrine" class="tab-content">
         <div class="card">
             <h2>🖼️ Vitrine e Catálogo</h2>
             <input type="hidden" id="v-id">
-            <input type="text" id="v-nome" placeholder="Produto">
-            <input type="number" id="v-preco" placeholder="R$ Preço">
-            <input type="text" id="v-img" placeholder="Link Foto URL">
+            <div class="grid">
+                <input type="text" id="v-nome" placeholder="Produto">
+                <input type="number" id="v-preco" placeholder="R$ Preço">
+                <input type="text" id="v-img" placeholder="Link Foto URL">
+            </div>
             <button class="btn-principal" id="v-btn" onclick="addVitrine()">Cadastrar</button>
         </div>
         <div class="grid" id="grid-vit"></div>
-    </div>
-
-    <div id="clientes" class="tab-content">
-        <div class="card">
-            <h2>👥 Cadastro de Clientes</h2>
-            <input type="text" id="c-nome" placeholder="Nome">
-            <input type="text" id="c-doc" placeholder="CPF/CNPJ">
-            <input type="text" id="c-tel" placeholder="Zap">
-            <textarea id="c-end" placeholder="Endereço Completo"></textarea>
-            <button class="btn-principal" onclick="addCliente()">Salvar</button>
-        </div>
-        <table id="tab-cli"><thead><tr><th>Nome</th><th>Documento</th><th>Zap</th><th>Ação</th></tr></thead><tbody></tbody></table>
-    </div>
-
-    <div id="apps" class="tab-content">
-        <div class="card">
-            <h2>📱 Licenças App</h2>
-            <select id="a-cli"><option value="">Cliente...</option></select>
-            <input type="text" id="a-login" placeholder="Login">
-            <select id="a-plano"><option value="15">Teste (15 dias)</option><option value="30">Mensal</option><option value="365">Anual</option></select>
-            <button class="btn-principal" onclick="addApp()">Ativar Licença</button>
-        </div>
-        <table id="tab-app"><thead><tr><th>Cliente</th><th>Vencimento</th><th>Ação</th></tr></thead><tbody></tbody></table>
     </div>
 
     <div id="estoque" class="tab-content">
@@ -155,6 +146,17 @@
             <button class="btn-principal" onclick="addEstoque()">Salvar</button>
         </div>
         <table id="tab-estoque"><thead><tr><th>Item</th><th>Qtd</th><th>Ação</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div id="apps" class="tab-content">
+        <div class="card">
+            <h2>📱 Licenças App</h2>
+            <select id="a-cli"><option value="">Cliente...</option></select>
+            <input type="text" id="a-login" placeholder="Login">
+            <select id="a-plano"><option value="15">Teste (15 dias)</option><option value="30">Mensal</option><option value="365">Anual</option></select>
+            <button class="btn-principal" onclick="addApp()">Ativar</button>
+        </div>
+        <table id="tab-app"><thead><tr><th>Cliente</th><th>Vencimento</th><th>Ação</th></tr></thead><tbody></tbody></table>
     </div>
 
     <div id="config" class="tab-content">
@@ -184,38 +186,52 @@
 
     function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
 
-    function addPedido() { if(!db.pedidos) db.pedidos = []; db.pedidos.push({ id: Date.now(), cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, valor: parseFloat(document.getElementById('p-total').innerText), status: 'ORCAMENTO' }); sync(); }
+    function calcPed() {
+        const p = (db.vitrine || []).find(x => x.nome === document.getElementById('p-prod').value);
+        const qtd = parseInt(document.getElementById('p-qtd').value) || 1;
+        let f = document.getElementById('p-frete').value === 'manual' ? parseFloat(document.getElementById('p-f-manual').value || 0) : parseFloat(document.getElementById('p-frete').value);
+        document.getElementById('p-f-manual').style.display = document.getElementById('p-frete').value === 'manual' ? 'block' : 'none';
+        let t = (((p?p.preco:0) * qtd) + f);
+        document.getElementById('p-total').innerText = t.toFixed(2);
+        document.getElementById('p-sinal').innerText = (t / 2).toFixed(2);
+    }
+
+    function addPedido() { if(!db.pedidos) db.pedidos = []; db.pedidos.push({ id: Date.now(), cli: document.getElementById('p-cli').value, prod: document.getElementById('p-prod').value, qtd: document.getElementById('p-qtd').value, valor: parseFloat(document.getElementById('p-total').innerText), status: 'ORCAMENTO' }); sync(); }
     function addCliente() { if(!db.clientes) db.clientes = []; db.clientes.push({ id: Date.now(), nome: document.getElementById('c-nome').value, doc: document.getElementById('c-doc').value, tel: document.getElementById('c-tel').value, end: document.getElementById('c-end').value }); sync(); }
-    function addVitrine() { const id = document.getElementById('v-id').value; const v = { id: id ? parseInt(id) : Date.now(), nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value }; if(!db.vitrine) db.vitrine = []; if(id) { const idx = db.vitrine.findIndex(x => x.id == id); db.vitrine[idx] = v; } else db.vitrine.push(v); document.getElementById('v-id').value=''; sync(); }
     function addGasto() { if(!db.gastos) db.gastos = []; db.gastos.push({ id: Date.now(), d: document.getElementById('f-desc').value, v: parseFloat(document.getElementById('f-valor').value) }); sync(); }
     function addEstoque() { if(!db.estoque) db.estoque = []; db.estoque.push({ id: Date.now(), i: document.getElementById('e-item').value, q: document.getElementById('e-qtd').value }); sync(); }
     function addApp() { if(!db.apps) db.apps = []; let d = new Date(); d.setDate(d.getDate() + parseInt(document.getElementById('a-plano').value)); db.apps.push({ id: Date.now(), cli: document.getElementById('a-cli').value, venc: d.toLocaleDateString() }); sync(); }
+    function addVitrine() { const id = document.getElementById('v-id').value; const v = { id: id ? parseInt(id) : Date.now(), nome: document.getElementById('v-nome').value, preco: parseFloat(document.getElementById('v-preco').value), img: document.getElementById('v-img').value }; if(!db.vitrine) db.vitrine = []; if(id) { const idx = db.vitrine.findIndex(x => x.id == id); db.vitrine[idx] = v; } else db.vitrine.push(v); document.getElementById('v-id').value=''; sync(); }
 
     function abrirDoc(idx) {
         const p = db.pedidos[idx]; const c = db.clientes.find(x => x.nome === p.cli) || {doc:'', tel:'', end:''};
-        const tipo = p.status === 'ENTREGUE' ? 'RECIBO DE VENDA' : 'ORÇAMENTO';
-        document.getElementById('doc-corpo').innerHTML = `<div style="text-align:center"><img src="${db.cfg.logo}" width="60"><h3>${db.cfg.nome}</h3><h4>${tipo}</h4></div><p><b>CLIENTE:</b> ${p.cli}<br><b>DOC:</b> ${c.doc}<br><b>ZAP:</b> ${c.tel}<br><b>ENDEREÇO:</b> ${c.end}<br><b>PRODUTO:</b> ${p.prod}</p><div style="background:#f1f1f1; padding:10px; text-align:center;"><b>PIX: ${db.cfg.pix}</b><br>TOTAL: R$ ${p.valor.toFixed(2)}</div>`;
+        const tipo = p.status === 'ENTREGUE' ? 'RECIBO DE VENDA' : 'ORÇAMENTO DE COMPRA';
+        document.getElementById('doc-corpo').innerHTML = `
+            <div style="text-align:center"><img src="${db.cfg.logo}" width="60"><h3>${db.cfg.nome}</h3><h4>${tipo}</h4></div>
+            <p><b>CLIENTE:</b> ${p.cli}<br><b>DOC:</b> ${c.doc}<br><b>ENDEREÇO:</b> ${c.end}</p>
+            <p><b>PRODUTO:</b> ${p.prod} (Qtd: ${p.qtd || 1})<br><b>TOTAL: R$ ${p.valor.toFixed(2)}</b></p>
+            <div style="background:#f1f1f1; padding:10px; text-align:center;"><b>PIX: ${db.cfg.pix}</b><br>${p.status === 'ENTREGUE' ? 'PAGAMENTO TOTAL REALIZADO ✅' : 'SINAL 50%: R$ '+(p.valor/2).toFixed(2)}</div>`;
         document.getElementById('qrcode').innerHTML = "";
         new QRCode(document.getElementById("qrcode"), { text: `Playtatic - Dono: ${p.cli} | Doc: ${c.doc} | Fone: ${c.tel}`, width: 120, height: 120 });
         document.getElementById('modal-doc').style.display = 'flex';
     }
 
-    function calcPed() { const p = (db.vitrine || []).find(x => x.nome === document.getElementById('p-prod').value); let f = document.getElementById('p-frete').value === 'manual' ? parseFloat(document.getElementById('p-f-manual').value || 0) : parseFloat(document.getElementById('p-frete').value); document.getElementById('p-f-manual').style.display = document.getElementById('p-frete').value === 'manual' ? 'block' : 'none'; let t = (((p?p.preco:0) * parseInt(document.getElementById('p-qtd').value)) + f); document.getElementById('p-total').innerText = t.toFixed(2); document.getElementById('p-sinal').innerText = (t/2).toFixed(2); }
-
     function render() {
         document.getElementById('header-nome').innerText = db.cfg.nome; document.getElementById('header-pix').innerText = "PIX: " + db.cfg.pix; document.getElementById('header-logo').src = db.cfg.logo;
         const ent = (db.pedidos || []).filter(p => p.status === 'ENTREGUE'); const orc = (db.pedidos || []).filter(p => p.status !== 'ENTREGUE');
         let tC = ent.reduce((a,b)=> a+b.valor, 0) + orc.reduce((a,b)=> a+(b.valor/2), 0);
+        let tG = (db.gastos || []).reduce((a,b)=> a+b.v, 0);
         document.getElementById('dash-caixa').innerText = "R$ " + tC.toFixed(2);
+        document.getElementById('dash-lucro').innerText = "R$ " + (tC - tG).toFixed(2);
+        document.getElementById('dash-receber').innerText = "R$ " + orc.reduce((a,b)=> a+(b.valor/2), 0).toFixed(2);
         document.getElementById('p-cli').innerHTML = document.getElementById('a-cli').innerHTML = '<option value="">Cliente...</option>' + (db.clientes || []).map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         document.getElementById('p-prod').innerHTML = '<option value="">Produto...</option>' + (db.vitrine || []).map(v => `<option value="${v.nome}">${v.nome}</option>`).join('');
-        
-        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod}</td><td>${p.status}</td><td><button class="btn-acao" style="background:var(--sucesso)" onclick="db.pedidos[${i}].status='ENTREGUE';sync()">✅</button><button class="btn-acao" style="background:var(--info)" onclick="abrirDoc(${i})">🧾</button><button class="btn-acao" style="background:var(--perigo)" onclick="db.pedidos.splice(${i},1);sync()">🗑️</button></td></tr>`).reverse().join('');
-        document.querySelector('#tab-cli tbody').innerHTML = (db.clientes || []).map((c,i) => `<tr><td>${c.nome}</td><td>${c.doc}</td><td>${c.tel}</td><td><button class="btn-acao" style="background:var(--perigo)" onclick="db.clientes.splice(${i},1);sync()">🗑️</button></td></tr>`).join('');
-        document.querySelector('#tab-gastos tbody').innerHTML = (db.gastos || []).map((g,i) => `<tr><td>${g.d}</td><td>R$ ${g.v}</td><td><button onclick="db.gastos.splice(${i},1);sync()">❌</button></td></tr>`).join('');
+        document.querySelector('#tab-ped tbody').innerHTML = (db.pedidos || []).map((p, i) => `<tr><td>${p.cli}</td><td>${p.prod} (${p.qtd || 1})</td><td>${p.status}</td><td><button class="btn-acao" style="background:var(--sucesso)" onclick="db.pedidos[${i}].status='ENTREGUE';sync()">✅</button><button class="btn-acao" style="background:var(--info)" onclick="abrirDoc(${i})">🧾</button><button class="btn-acao" style="background:var(--perigo)" onclick="db.pedidos.splice(${i},1);sync()">🗑️</button></td></tr>`).reverse().join('');
+        document.querySelector('#tab-cli tbody').innerHTML = (db.clientes || []).map((c,i) => `<tr><td>${c.nome}</td><td>${c.tel}</td><td><button class="btn-acao" style="background:var(--perigo)" onclick="db.clientes.splice(${i},1);sync()">🗑️</button></td></tr>`).join('');
+        document.querySelector('#tab-gastos tbody').innerHTML = (db.gastos || []).map((g,i) => `<tr><td>${g.d}</td><td>R$ ${g.v}</td><td><button onclick="db.gastos.splice(${i},1);sync()">❌</button></td></tr>`).reverse().join('');
         document.querySelector('#tab-estoque tbody').innerHTML = (db.estoque || []).map((e,i) => `<tr><td>${e.i}</td><td>${e.q}</td><td><button onclick="db.estoque.splice(${i},1);sync()">❌</button></td></tr>`).join('');
         document.querySelector('#tab-app tbody').innerHTML = (db.apps || []).map((a,i) => `<tr><td>${a.cli}</td><td>${a.venc}</td><td><button onclick="db.apps.splice(${i},1);sync()">❌</button></td></tr>`).join('');
-        const gV = document.getElementById('grid-vit'); gV.innerHTML = ''; (db.vitrine || []).forEach((v,i) => { gV.innerHTML += `<div class="card vitrine-item" style="text-align:center;"><img src="${v.img}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"><b>${v.nome}</b><br><span>R$ ${v.preco}</span><div style="display:flex;justify-content:center;"><button class="btn-acao" style="background:var(--info)" onclick="document.getElementById('v-id').value='${v.id}';document.getElementById('v-nome').value='${v.nome}';document.getElementById('v-preco').value='${v.preco}';document.getElementById('v-img').value='${v.img}';showTab('vitrine')">✏️</button><button class="btn-acao" style="background:var(--perigo)" onclick="db.vitrine.splice(${i},1);sync()">🗑️</button></div></div>`; });
+        const gV = document.getElementById('grid-vit'); gV.innerHTML = ''; (db.vitrine || []).forEach((v,i) => { gV.innerHTML += `<div class="card" style="text-align:center;"><img src="${v.img}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"><b>${v.nome}</b><br>R$ ${v.preco}<div style="display:flex;justify-content:center;"><button class="btn-acao" style="background:var(--info)" onclick="document.getElementById('v-id').value='${v.id}';document.getElementById('v-nome').value='${v.nome}';document.getElementById('v-preco').value='${v.preco}';document.getElementById('v-img').value='${v.img}';showTab('vitrine')">✏️</button><button class="btn-acao" style="background:var(--perigo)" onclick="db.vitrine.splice(${i},1);sync()">🗑️</button></div></div>`; });
     }
     function saveConfig() { db.cfg.nome = document.getElementById('cfg-nome').value; db.cfg.pix = document.getElementById('cfg-pix').value; db.cfg.logo = document.getElementById('cfg-logo').value; sync(); }
     function saveAgenda() { if(!db.tasks) db.tasks = {}; db.tasks[document.getElementById('agenda-data').value] = document.getElementById('agenda-texto').value; sync(); }
